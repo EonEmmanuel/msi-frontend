@@ -1,0 +1,7 @@
+# Google AdSense
+google.com, pub-7826532467315621, DIRECT
+
+
+# Advanced Metadata (Optional)
+OWNERDOMAIN=guinness-super-league.site
+MANAGERDOMAIN=guinness-super-league.site

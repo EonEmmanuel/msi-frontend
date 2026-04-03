@@ -1,0 +1,516 @@
+import { Button, Modal, Table } from 'flowbite-react';
+import React, { useEffect, useState } from 'react'
+import { FaPenClip, FaRecycle } from 'react-icons/fa6';
+import { HiOutlineExclamationCircle } from 'react-icons/hi'
+
+function Goal() {
+  
+  const [data, setData] = useState([]);
+  const [AddGoal, setAddGoal] = useState(false)
+  const [updateGoal, setUpdateGoal] = useState(false)
+  const [updateData, setUpdateData] = useState([])
+  const [updateGoalId, setUpdateGoalId] = useState('')
+  const [deleteGoal, setDeleteGoal] = useState(false)
+  const [deleteGoalId, setDeleteGoalId] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [teamdata, setTeamData] = useState([])
+  const [formData, setFormData] = useState({
+    team: '',
+    matches: '',
+    goal: '',
+    home_goals: '',
+    rating: ''
+  });
+
+  useEffect(() => {
+
+    // Function to fetch data from your SQL API
+    const fetchGoalData = async () => {
+      try {
+        // Replace with your actual API endpoint
+        const response = await fetch(`https://guinness-super-league-server.vercel.app/api/gsl/getgoal/${updateGoalId}`);
+        
+        // Check if the response is successful
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        // Parse the JSON response
+        const result = await response.json();
+        
+        // Update state with the fetched data
+        setUpdateData(result);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    
+    // Call the fetch function
+    fetchGoalData();
+  }, [updateGoalId]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  }
+
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    
+    setMessage({ text: '', type: '' })
+    setIsLoading(true);
+    setMessage({ text: 'Loading.......', type: 'success' });
+    
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch('https://guinness-super-league-server.vercel.app/api/gsl/creategoal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      setMessage({ text: 'Team Added successful!!', type: 'success' });
+      
+      // Redirect or update app state here
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      setMessage({ text: error.message, type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+
+    setMessage({ text: '', type: '' })
+    setIsLoading(true);
+    setMessage({ text: 'Loading.......', type: 'success' });
+    
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch(`https://guinness-super-league-server.vercel.app/api/gsl/updategoal/${updateGoalId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updateData)
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      setMessage({ text: 'Team Update successful!!', type: 'success' });
+      
+      // Redirect or update app state here
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
+    } catch (error) {
+      setMessage({ text: error.message, type: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+
+    // Function to fetch data from your SQL API
+    const fetchData = async () => {
+
+      try {
+        // Replace with your actual API endpoint
+        const response = await fetch('https://guinness-super-league-server.vercel.app/api/gsl/getallgoal');
+        
+        // Check if the response is successful
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        // Parse the JSON response
+        const result = await response.json();
+        
+        // Update state with the fetched data
+        setData(result);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    
+    // Call the fetch function
+    fetchData();
+  }, []);
+
+  const handleDelete = async () =>{
+    try{
+    const res = await fetch(`https://guinness-super-league-server.vercel.app/api/gsl/deletegoal/${deleteGoalId}`, {
+      method: 'DELETE'
+    });
+      const data = await res.json();
+     if (!res.ok){
+      setMessage(data.message)
+     } else {
+      setMessage({ text: 'Team Deleted successful!!', type: 'success' })
+      setDeleteGoal(false)
+      setData((prev) =>
+       prev.filter((goal) => goal.goal_id !== deleteGoalId ))
+      setMessage({ text: '', type: '' });
+     }
+   }catch(error){
+    setMessage(error)
+   }
+}
+
+useEffect(() => {
+
+    // Function to fetch data from your SQL API
+    const fetchPlayerData = async () => {
+      setMessage({ text: '', type: '' }) 
+
+      try {
+        // Replace with your actual API endpoint
+        const response = await fetch('https://guinness-super-league-server.vercel.app/api/gsl/getallteam');
+        
+        // Check if the response is successful
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        // Parse the JSON response
+        const result = await response.json();
+        
+        // Update state with the fetched data
+        setTeamData(result.data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    
+    // Call the fetch function
+    fetchPlayerData();
+
+  }, []);
+
+  return (
+    <div className='m-3 mx-auto'>
+     <h1 className='text-2xl text-center'>Team Goal</h1>
+         <div className='cursor-pointer border-2 mx-auto border-blue-300 rounded-lg bg-blue-400 text-white m-2 p-1 w-32 text-center' onClick={() => {setAddGoal(true)}}>
+           Add Team
+         </div>
+    <div className='w-full mx-auto overflow-scroll scrollbar'>
+      <Table>
+         <Table.Head>
+           <Table.HeadCell>
+              Team
+           </Table.HeadCell>
+           <Table.HeadCell>
+              Team Name
+           </Table.HeadCell>
+           <Table.HeadCell>
+              Matches
+           </Table.HeadCell>
+           <Table.HeadCell>
+              Goals
+           </Table.HeadCell>
+           <Table.HeadCell>
+              Home Goals
+           </Table.HeadCell>
+           <Table.HeadCell>
+              Rating
+           </Table.HeadCell>
+         </Table.Head>
+         <Table.Body>
+             {
+               data.map((goal) => (
+                 <Table.Row key={goal.goal_id}>
+                    <Table.Cell>
+                      <img src={goal.logo} width={30} className='rounded-full' />
+                    </Table.Cell>
+                    <Table.Cell>
+                     {goal.name}
+                    </Table.Cell>
+                    <Table.Cell>
+                     {goal.matches}
+                    </Table.Cell>
+                    <Table.Cell>
+                     {goal.goals}
+                    </Table.Cell>
+                    <Table.Cell>
+                     {goal.home_goals}
+                    </Table.Cell>
+                    <Table.Cell>
+                     {goal.rating}
+                    </Table.Cell>
+                    <Table.Cell>
+                     <span className='flex gap-3'>
+                      <FaPenClip  onClick={() => { 
+                        setUpdateGoal(true) 
+                        setUpdateGoalId(goal.goal_id) }} />
+                      <FaRecycle 
+                         onClick={() => {
+                          setDeleteGoal(true)
+                          setDeleteGoalId(goal.goal_id) }} />
+                     </span>
+                    </Table.Cell>
+                  </Table.Row>
+               ))
+             }
+         </Table.Body>
+      </Table>
+    </div>
+         <Modal
+                    show={AddGoal}
+                    onClose={()=> setAddGoal(false)}
+                    popup size='3xl'
+                    >
+                        <Modal.Header />
+                  <Modal.Body>
+                  {message.text && (
+                    <div className={`p-4 rounded-md ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {message.text}
+                    </div>
+                  )}
+                        <div className="flex justify-center items-center min-h-screen">
+              <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900">Add Team Goal</h1>
+                  <p className=" text-sm text-gray-400">Add Team Goal to Register</p>
+                </div>
+                                                
+                <form className="mt-3 space-y-3" onSubmit={handleRegister}>
+                  <div className="space-y-2">
+
+                  <div>
+                      <select
+                        className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        name="team"
+                        value={formData.team}
+                        onChange={handleChange}
+                      >
+                        <option value="">Select Team</option>
+                        {teamdata.map((team) => (
+                          <option key={team.team_id} value={team.team_id}>
+                            {team.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+
+                    <div>
+                      <input
+                        type="text"
+                        name="matches"
+                        value={formData.matches}
+                        onChange={handleChange}
+                        required
+                        placeholder='Matches'
+                        className={`mt-1 block w-full text-sm px-3 py-2 mb-4 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        name="goals"
+                        value={formData.goals}
+                        onChange={handleChange}
+                        required
+                        placeholder='Goals'
+                        className={`mt-1 block w-full text-sm px-3 py-2 mb-4 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        name="home_goals"
+                        value={formData.home_goals}
+                        onChange={handleChange}
+                        required
+                        placeholder='Home Goals'
+                        className={`mt-1 block w-full text-sm px-3 py-2 mb-4 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        name="rating"
+                        value={formData.rating}
+                        onChange={handleChange}
+                        required
+                        placeholder='rating'
+                        className={`mt-1 block w-full text-sm px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+                   
+                  </div>
+                  <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+            >
+              {isLoading ? 'Add....' : 'Add'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </Modal.Body>
+    </Modal>
+    <Modal
+                    show={updateGoal}
+                    onClose={()=> setUpdateGoal(false)}
+                    popup size='3xl'
+                    >
+                        <Modal.Header />
+                  <Modal.Body>
+                  {message.text && (
+                    <div className={`p-4 rounded-md ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {message.text}
+                    </div>
+                  )}
+                        <div className="flex justify-center items-center min-h-screen">
+              <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900">Update Team Goal</h1>
+                  <p className=" text-sm text-gray-400">Update Team Goal to details</p>
+                </div>
+                                                
+                <form className="mt-3 space-y-3" onSubmit={handleUpdate}>
+                  <div className="space-y-2">
+
+                    <div>
+                    <select
+                        className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                        name="team"
+                        value={updateData.team}
+                        onChange={(e) => 
+                          setUpdateData({...updateData, team: e.target.value})}
+                      >
+                        <option value={updateData.team}>
+                           {updateData.name}
+                        </option>
+                        {teamdata.map((team) => (
+                          <option value={team.team_id}>
+                            {team.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+
+                    <div>
+                      <input
+                        type="text"
+                        name="matches"
+                        value={updateData.matches}
+                        onChange={(e) => 
+                          setUpdateData({...updateData, matches: e.target.value})}
+                        placeholder='Matches'
+                        className={`mt-1 block w-full text-sm px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        name="goals"
+                        value={updateData.goals}
+                        onChange={(e) => 
+                          setUpdateData({...updateData, goals: e.target.value})}
+                        placeholder='Goals'
+                        className={`mt-1 block w-full text-sm px-3 py-2 mb-4 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+
+                    <div>
+                      <input
+                        type="text"
+                        name="home_goals"
+                        value={updateData.home_goals}
+                        onChange={(e) => 
+                          setUpdateData({...updateData, home_goals: e.target.value})}
+                        placeholder='Home_Goals'
+                        className={`mt-1 block w-full text-sm px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+
+                     <div>
+                      <input
+                        type="text"
+                        name="rating"
+                        value={updateData.rating}
+                        onChange={(e) => 
+                          setUpdateData({...updateData, rating: e.target.value})}
+                        placeholder='Rating'
+                        className={`mt-1 block w-full text-sm px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500`}
+                      />
+                    </div>
+
+                  </div>
+                  <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
+            >
+              {isLoading ? 'Updating....' : 'Update'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+                        </Modal.Body>
+                 </Modal>
+                 <Modal show={deleteGoal} 
+              onClose={() => setDeleteGoal(false)} 
+              popup size ='md' >
+                <Modal.Header />
+                  <Modal.Body>
+                    <div className='text-center'>
+                      <HiOutlineExclamationCircle className='h-14 w-14 text-gray-300 mx-auto' />
+                      <h3 className='text-gray-600 text-2xl py-3'>Are you sure you want to delete?</h3>
+                      <div className='flex justify-center gap-4'>
+                        <Button 
+                        onClick={handleDelete}
+                        color="success"
+                        >
+                          Yes
+                        </Button>
+                        <Button 
+                        onClick={() => setDeleteGoal(false)}
+                        color="failure"
+                        >
+                           No
+                        </Button>
+                      </div>
+                    </div>
+                  </Modal.Body>
+            </Modal>
+    </div>
+  )
+}
+
+export default Goal
